@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تحرير الصوت رقمياً | Adobe Audition 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ========== CSS VARIABLES ========== */
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-card: #1a1a26;
+  --bg-card-hover: #202030;
+  --accent-blue: #00a8ff;
+  --accent-cyan: #00e5ff;
+  --accent-purple: #7c3aed;
+  --accent-gold: #f59e0b;
+  --accent-green: #10b981;
+  --text-primary: #f0f4ff;
+  --text-secondary: #8892b0;
+  --text-muted: #4a5568;
+  --border: rgba(0,168,255,0.15);
+  --border-strong: rgba(0,168,255,0.35);
+  --glow: 0 0 30px rgba(0,168,255,0.2);
+  --glow-strong: 0 0 60px rgba(0,168,255,0.4);
+  --font-main: 'Cairo', 'Tajawal', sans-serif;
+  --radius: 16px;
+  --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+  --adobe-red: #ff0000;
+  --adobe-orange: #ff6b00;
+}
+
+.light-mode {
+  --bg-primary: #f0f4ff;
+  --bg-secondary: #e4eaf8;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f8f9ff;
+  --text-primary: #0d1b3e;
+  --text-secondary: #3d4f7c;
+  --text-muted: #6b7db3;
+  --border: rgba(0,100,200,0.15);
+  --border-strong: rgba(0,100,200,0.3);
+  --glow: 0 4px 20px rgba(0,100,200,0.1);
+}
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-main);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  transition: background 0.4s, color 0.4s;
+  overflow-x: hidden;
+}
+
+/* ========== NOISE OVERLAY ========== */
+body::before {
+  content: '';
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ========== HEADER ========== */
+.site-header {
+  position: sticky; top: 0; z-index: 1000;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(20px) saturate(1.5);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2rem;
+  transition: background 0.4s;
+}
+
+.light-mode .site-header {
+  background: rgba(240,244,255,0.9);
+}
+
+.header-inner {
+  max-width: 1400px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; height: 72px;
+}
+
+.logo-area { display: flex; align-items: center; gap: 1rem; }
+
+.logo-img { height: 48px; width: auto; filter: brightness(1.1); }
+
+.logo-divider {
+  width: 1px; height: 36px;
+  background: var(--border-strong);
+}
+
+.logo-text {
+  font-size: 0.75rem; font-weight: 600;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.logo-text strong { display: block; color: var(--accent-blue); font-size: 0.85rem; }
+
+nav { display: flex; align-items: center; gap: 0.25rem; }
+
+nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.85rem; font-weight: 500;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+nav a:hover { color: var(--accent-blue); background: rgba(0,168,255,0.08); }
+
+.header-actions { display: flex; align-items: center; gap: 0.75rem; }
+
+/* Theme toggle */
+.theme-toggle {
+  width: 44px; height: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
+  border-radius: 12px;
+  cursor: pointer;
+  position: relative;
+  transition: var(--transition);
+  display: flex; align-items: center; padding: 3px;
+}
+
+.theme-toggle::after {
+  content: '🌙';
+  font-size: 13px;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition);
+  transform: translateX(0);
+}
+
+.light-mode .theme-toggle::after { content: '☀️'; transform: translateX(18px); }
+
+/* Download button */
+.btn-download {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: linear-gradient(135deg, var(--adobe-red), var(--adobe-orange));
+  color: white !important; font-weight: 700; font-size: 0.8rem;
+  padding: 0.55rem 1.1rem; border-radius: 8px;
+  text-decoration: none; white-space: nowrap;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(255,107,0,0.3);
+}
+
+.btn-download:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,107,0,0.5); }
+
+/* ========== HERO ========== */
+.hero {
+  position: relative; overflow: hidden;
+  padding: 6rem 2rem 5rem;
+  text-align: center;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(0,168,255,0.12) 0%, transparent 70%);
+}
+
+.hero-waveform {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 120px; opacity: 0.15;
+}
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  background: rgba(0,168,255,0.1); border: 1px solid rgba(0,168,255,0.3);
+  color: var(--accent-cyan); font-size: 0.78rem; font-weight: 700;
+  padding: 0.4rem 1rem; border-radius: 100px; margin-bottom: 1.5rem;
+  letter-spacing: 0.05em;
+  animation: fadeDown 0.6s ease;
+}
+
+.hero-badge::before { content: '◉'; animation: pulse 2s infinite; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.hero h1 {
+  font-size: clamp(2.2rem, 5vw, 4rem);
+  font-weight: 900; line-height: 1.2;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 50%, var(--accent-cyan) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  animation: fadeUp 0.7s ease 0.1s both;
+}
+
+.hero-sub {
+  font-size: 1.1rem; color: var(--text-secondary);
+  max-width: 600px; margin: 0 auto 2.5rem;
+  animation: fadeUp 0.7s ease 0.2s both;
+}
+
+.hero-stats {
+  display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap;
+  animation: fadeUp 0.7s ease 0.3s both;
+}
+
+.stat {
+  text-align: center;
+  padding: 1rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 120px;
+  transition: var(--transition);
+}
+
+.stat:hover { border-color: var(--accent-blue); transform: translateY(-3px); box-shadow: var(--glow); }
+
+.stat-num { font-size: 2rem; font-weight: 900; color: var(--accent-blue); line-height: 1; }
+.stat-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
+@keyframes fadeDown { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:none} }
+
+/* ========== SECTIONS ========== */
+section { position: relative; z-index: 1; }
+
+.container { max-width: 1300px; margin: 0 auto; padding: 0 2rem; }
+
+.section-pad { padding: 5rem 0; }
+
+.section-header {
+  text-align: center; margin-bottom: 3.5rem;
+}
+
+.section-tag {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--accent-blue);
+  text-transform: uppercase; margin-bottom: 0.75rem;
+}
+
+.section-title {
+  font-size: clamp(1.8rem, 3.5vw, 2.5rem);
+  font-weight: 900; color: var(--text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.section-desc { color: var(--text-secondary); font-size: 1rem; max-width: 600px; margin: 0 auto; }
+
+/* Divider */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+  margin: 0;
+}
+
+/* ========== ABOUT ADOBE ========== */
+.about-adobe {
+  background: var(--bg-secondary);
+}
+
+.adobe-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: center;
+}
+
+.adobe-visual {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+.adobe-visual::before {
+  content: ''; position: absolute;
+  top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle, rgba(255,107,0,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.adobe-logo-big {
+  font-size: 5rem; font-weight: 900; line-height: 1;
+  background: linear-gradient(135deg, #ff0000, #ff6b00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 0.5rem;
+}
+
+.adobe-logo-sub { font-size: 1.5rem; font-weight: 700; color: var(--text-secondary); }
+
+.adobe-year-badge {
+  display: inline-block; margin-top: 1rem;
+  background: linear-gradient(135deg, #ff0000, #ff6b00);
+  color: white; font-size: 0.85rem; font-weight: 700;
+  padding: 0.35rem 1rem; border-radius: 100px;
+}
+
+.adobe-info h3 {
+  font-size: 1.5rem; font-weight: 800; color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.adobe-info p {
+  color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.8;
+  font-size: 0.95rem;
+}
+
+.adobe-features {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 1.5rem;
+}
+
+.adobe-feat {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.85rem; color: var(--text-primary);
+  background: var(--bg-card); border: 1px solid var(--border);
+  padding: 0.6rem 0.85rem; border-radius: 10px;
+  transition: var(--transition);
+}
+
+.adobe-feat:hover { border-color: var(--accent-orange, #f59e0b); transform: translateX(-3px); }
+.adobe-feat .icon { font-size: 1.1rem; }
+
+/* ========== TERMINOLOGY SECTION ========== */
+.terms-filter {
+  display: flex; gap: 0.5rem; flex-wrap: wrap;
+  justify-content: center; margin-bottom: 2.5rem;
+}
+
+.filter-btn {
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: var(--text-secondary); font-family: var(--font-main);
+  font-size: 0.82rem; font-weight: 600; cursor: pointer;
+  padding: 0.5rem 1.2rem; border-radius: 100px;
+  transition: var(--transition);
+}
+
+.filter-btn:hover, .filter-btn.active {
+  background: var(--accent-blue); color: white;
+  border-color: var(--accent-blue);
+  box-shadow: 0 4px 15px rgba(0,168,255,0.3);
+}
+
+.terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.term-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  transition: var(--transition);
+  cursor: default;
+  position: relative; overflow: hidden;
+}
+
+.term-card::before {
+  content: ''; position: absolute;
+  top: 0; right: 0; width: 4px; height: 100%;
+  background: var(--card-accent, var(--accent-blue));
+  transition: var(--transition);
+}
+
+.term-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--card-accent, var(--accent-blue));
+  box-shadow: 0 12px 35px rgba(0,0,0,0.3), var(--glow);
+}
+
+.term-card[data-category="basics"] { --card-accent: var(--accent-blue); }
+.term-card[data-category="recording"] { --card-accent: var(--accent-green); }
+.term-card[data-category="editing"] { --card-accent: var(--accent-purple); }
+.term-card[data-category="formats"] { --card-accent: var(--accent-gold); }
+.term-card[data-category="ai"] { --card-accent: var(--accent-cyan); }
+
+.term-badge {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--card-accent, var(--accent-blue));
+  background: color-mix(in srgb, var(--card-accent, var(--accent-blue)) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent-blue)) 30%, transparent);
+  padding: 0.2rem 0.6rem; border-radius: 100px;
+  margin-bottom: 0.75rem;
+}
+
+.term-en {
+  font-size: 1.3rem; font-weight: 800;
+  color: var(--text-primary); margin-bottom: 0.25rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: -0.02em;
+}
+
+.term-ar {
+  font-size: 0.9rem; font-weight: 600;
+  color: var(--card-accent, var(--accent-blue));
+  margin-bottom: 0.75rem;
+}
+
+.term-desc {
+  font-size: 0.88rem; color: var(--text-secondary);
+  line-height: 1.7; margin-bottom: 1rem;
+}
+
+.term-preferred {
+  background: color-mix(in srgb, var(--card-accent, var(--accent-blue)) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-accent, var(--accent-blue)) 20%, transparent);
+  border-radius: 10px; padding: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.term-preferred-label {
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em;
+  color: var(--card-accent, var(--accent-blue)); text-transform: uppercase;
+  margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.4rem;
+}
+
+.term-preferred-label::before { content: '★'; }
+
+.term-preferred-value {
+  font-size: 0.85rem; font-weight: 600;
+  color: var(--text-primary); font-family: 'Courier New', monospace;
+}
+
+.term-preferred-note { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+/* Visual comparison bars */
+.comparison-visual {
+  margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.4rem;
+}
+
+.comp-row { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+.comp-label { color: var(--text-secondary); min-width: 100px; text-align: right; }
+.comp-bar-wrap { flex: 1; background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden; }
+.comp-bar { height: 100%; border-radius: 4px; background: var(--card-accent, var(--accent-blue)); transition: width 0.8s ease; }
+.comp-val { color: var(--text-primary); font-weight: 600; min-width: 50px; font-family: monospace; }
+
+/* ========== WAVEFORM VS MULTITRACK SECTION ========== */
+.comparison-section { background: var(--bg-secondary); }
+
+.vs-container {
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 2rem;
+  align-items: start;
+}
+
+.vs-badge {
+  display: flex; align-items: center; justify-content: center;
+  width: 60px; height: 60px;
+  background: var(--bg-card); border: 2px solid var(--border-strong);
+  border-radius: 50%; font-size: 1.1rem; font-weight: 900;
+  color: var(--text-secondary); position: sticky; top: 100px;
+  margin-top: 4rem;
+  box-shadow: var(--glow);
+}
+
+.vs-panel {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  transition: var(--transition);
+}
+
+.vs-panel:hover { transform: translateY(-4px); border-color: var(--panel-color); box-shadow: 0 15px 40px rgba(0,0,0,0.3); }
+
+.vs-panel-header {
+  padding: 1.5rem 1.75rem;
+  background: color-mix(in srgb, var(--panel-color) 10%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--panel-color) 20%, transparent);
+}
+
+.vs-panel-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+.vs-panel-name { font-size: 1.3rem; font-weight: 800; color: var(--panel-color); font-family: monospace; }
+.vs-panel-name-ar { font-size: 0.9rem; color: var(--text-secondary); }
+
+.vs-panel-body { padding: 1.5rem 1.75rem; }
+
+.vs-use-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; }
+.vs-use-list li {
+  display: flex; align-items: flex-start; gap: 0.6rem;
+  font-size: 0.88rem; color: var(--text-secondary); line-height: 1.5;
+}
+.vs-use-list li::before { content: '→'; color: var(--panel-color); font-weight: 700; flex-shrink: 0; margin-top: 2px; }
+
+.vs-panel[data-mode="waveform"] { --panel-color: #00a8ff; }
+.vs-panel[data-mode="multitrack"] { --panel-color: #7c3aed; }
+
+.vs-tip {
+  margin-top: 1rem; padding: 0.75rem;
+  background: color-mix(in srgb, var(--panel-color) 8%, transparent);
+  border-radius: 10px; border: 1px solid color-mix(in srgb, var(--panel-color) 20%, transparent);
+  font-size: 0.82rem; color: var(--text-primary); font-weight: 600;
+}
+
+.vs-tip-label { color: var(--panel-color); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 0.25rem; }
+
+/* ========== WAVEFORM ILLUSTRATION ========== */
+.waveform-demo {
+  background: #0d0d14; border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem;
+  margin-top: 1rem; overflow: hidden;
+}
+
+.wf-tracks { display: flex; flex-direction: column; gap: 8px; }
+
+.wf-track {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.wf-label { font-size: 0.65rem; color: var(--text-muted); min-width: 55px; text-align: right; font-family: monospace; }
+
+.wf-visual {
+  flex: 1; height: 36px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 4px; overflow: hidden;
+  position: relative;
+  display: flex; align-items: center;
+}
+
+.wf-bar-container {
+  display: flex; align-items: center;
+  gap: 1px; height: 100%; padding: 0 4px;
+  width: 100%;
+  justify-content: space-around;
+}
+
+/* ========== COURSE PLAN MODAL ========== */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1.5rem; opacity: 0; pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--bg-card); border: 1px solid var(--border-strong);
+  border-radius: 20px; width: 100%; max-width: 900px;
+  max-height: 85vh; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8), var(--glow-strong);
+  transform: scale(0.95); transition: transform 0.3s;
+}
+
+.modal-overlay.open .modal { transform: scale(1); }
+
+.modal-header {
+  padding: 1.5rem 2rem;
+  background: linear-gradient(135deg, rgba(0,168,255,0.1), rgba(124,58,237,0.1));
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.modal-header h3 { font-size: 1.3rem; font-weight: 800; color: var(--text-primary); }
+.modal-header p { font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.15rem; }
+
+.modal-close {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,0.1); border: 1px solid var(--border);
+  border-radius: 50%; cursor: pointer; font-size: 1.2rem;
+  color: var(--text-secondary); display: flex; align-items: center; justify-content: center;
+  transition: var(--transition);
+}
+
+.modal-close:hover { background: rgba(255,0,0,0.2); color: white; border-color: red; }
+
+.modal-body { padding: 1.5rem 2rem; overflow-y: auto; flex: 1; }
+
+.week-item {
+  display: flex; gap: 1rem; align-items: flex-start;
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--border);
+  transition: var(--transition);
+}
+
+.week-item:hover { background: rgba(0,168,255,0.03); border-radius: 10px; padding-right: 0.5rem; }
+
+.week-num {
+  min-width: 42px; height: 42px;
+  background: linear-gradient(135deg, rgba(0,168,255,0.2), rgba(124,58,237,0.2));
+  border: 1px solid rgba(0,168,255,0.3);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 800; color: var(--accent-blue);
+  font-family: monospace;
+}
+
+.week-content h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem; }
+.week-topics { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+.week-topics li { font-size: 0.83rem; color: var(--text-secondary); display: flex; align-items: flex-start; gap: 0.4rem; }
+.week-topics li::before { content: '•'; color: var(--accent-blue); flex-shrink: 0; }
+
+/* ========== RESOURCES SECTION ========== */
+.resources-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem; }
+
+.resource-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem;
+  display: flex; align-items: center; gap: 1.25rem;
+  text-decoration: none; color: inherit;
+  transition: var(--transition);
+}
+
+.resource-card:hover { border-color: var(--res-color); transform: translateX(-4px); box-shadow: var(--glow); }
+
+.resource-icon {
+  width: 56px; height: 56px; flex-shrink: 0;
+  background: color-mix(in srgb, var(--res-color) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--res-color) 30%, transparent);
+  border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem;
+}
+
+.resource-info h4 { font-size: 0.92rem; font-weight: 700; color: var(--text-primary); }
+.resource-info p { font-size: 0.78rem; color: var(--text-secondary); margin-top: 0.2rem; }
+
+.resource-card[data-type="download"] { --res-color: #ff6b00; }
+.resource-card[data-type="music"] { --res-color: var(--accent-green); }
+.resource-card[data-type="docs"] { --res-color: var(--accent-blue); }
+
+/* ========== ASSESSMENT TABLE ========== */
+.assessment-grid {
+  display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+}
+
+.assess-item { min-width: 160px; max-width: 180px; flex: 0 1 180px; }
+
+.assess-item {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 1.5rem; text-align: center;
+  transition: var(--transition);
+}
+
+.assess-item:hover { transform: translateY(-4px); border-color: var(--item-color); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+
+.assess-pct {
+  font-size: 2.5rem; font-weight: 900;
+  color: var(--item-color); line-height: 1;
+}
+
+.assess-name { font-size: 0.88rem; color: var(--text-primary); font-weight: 600; margin-top: 0.5rem; }
+
+.assess-item:nth-child(1) { --item-color: var(--accent-blue); }
+.assess-item:nth-child(2) { --item-color: var(--accent-purple); }
+.assess-item:nth-child(3) { --item-color: var(--accent-green); }
+.assess-item:nth-child(4) { --item-color: var(--accent-gold); }
+.assess-item:nth-child(5) { --item-color: #ef4444; }
+
+/* ========== FOOTER ========== */
+footer {
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  padding: 2.5rem 2rem;
+  text-align: center;
+}
+
+.footer-inner { max-width: 900px; margin: 0 auto; }
+
+.footer-logo { height: 48px; margin-bottom: 1rem; opacity: 0.8; }
+
+.footer-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; }
+
+.footer-links { display: flex; justify-content: center; gap: 1.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.footer-links a { font-size: 0.8rem; color: var(--text-secondary); text-decoration: none; transition: var(--transition); }
+.footer-links a:hover { color: var(--accent-blue); }
+
+/* ========== UTILITIES ========== */
+.hidden { display: none !important; }
+
+
+/* UCAS Wordmark */
+.ucas-wordmark {
+  display: flex; flex-direction: column; gap: 0;
+  line-height: 1.15;
+}
+
+.ucas-ar {
+  font-family: var(--font-main);
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  transition: color 0.4s;
+}
+
+.light-mode .ucas-ar { color: #1a2a5e; }
+
+.ucas-wordmark .ucas-ar:first-child {
+  color: var(--accent-blue);
+  font-size: 0.88rem;
+}
+
+.light-mode .ucas-wordmark .ucas-ar:first-child { color: #1e56b0; }
+
+.footer-wm {
+  margin-bottom: 0.75rem;
+}
+
+.footer-wm .ucas-ar {
+  font-size: 1rem;
+  color: var(--accent-blue);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+
+/* Responsive */
+@media(max-width:900px) {
+  .adobe-grid, .vs-container { grid-template-columns: 1fr; }
+  .vs-badge { display: none; }
+  nav { display: none; }
+  .header-inner { gap: 0.75rem; }
+}
+
+@media(max-width:600px) {
+  .hero { padding: 3rem 1rem 2.5rem; }
+  .container { padding: 0 1rem; }
+}
+
+/* Animate on scroll */
+.anim-in { opacity: 0; transform: translateY(24px); transition: opacity 0.6s, transform 0.6s; }
+.anim-in.visible { opacity: 1; transform: none; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <div class="header-inner">
+    <div class="logo-area">
+      <div class="ucas-wordmark">
+      <span class="ucas-ar">الكلية الجامعية</span>
+      <span class="ucas-ar">للعلوم التطبيقية</span>
+    </div>
+      <div class="logo-divider"></div>
+      <div class="logo-text">
+        <strong>MMED 1205</strong>
+        تحرير الصوت رقمياً
+      </div>
+    </div>
+
+    <nav>
+      <a href="#about-adobe">Adobe</a>
+      <a href="#terminology">المصطلحات</a>
+      <a href="#waveform-vs-multitrack">Waveform vs Multitrack</a>
+      <a href="#resources">الموارد</a>
+      <a href="#assessment">التقييم</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="theme-toggle" id="themeBtn" title="تبديل الوضع" aria-label="Toggle theme"></button>
+      <a href="https://drive.google.com/drive/folders/1pGDa_92Ki8qBV6AUNJrogkzQgG1n1jjR?usp=sharing" 
+         target="_blank" class="btn-download">
+        ⬇ تنزيل Adobe Audition 2026
+      </a>
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">مساق MMED 1205 — الكلية الجامعية للعلوم التطبيقية</div>
+  <h1>تحرير الصوت رقمياً<br>Adobe Audition 2026</h1>
+  <p class="hero-sub">المرجع النظري الشامل لمصطلحات الصوت والإعدادات المثلى وتقنيات المونتاج الاحترافي</p>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">15</div>
+      <div class="stat-label">أسبوع دراسي</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">30+</div>
+      <div class="stat-label">مصطلح صوتي</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">2026</div>
+      <div class="stat-label">إصدار البرنامج</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">AI</div>
+      <div class="stat-label">تقنيات ذكاء اصطناعي</div>
+    </div>
+  </div>
+
+  <!-- SVG Waveform decoration -->
+  <svg class="hero-waveform" viewBox="0 0 1440 120" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="wfGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" style="stop-color:#00a8ff;stop-opacity:0"/>
+        <stop offset="30%" style="stop-color:#00a8ff;stop-opacity:1"/>
+        <stop offset="70%" style="stop-color:#7c3aed;stop-opacity:1"/>
+        <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:0"/>
+      </linearGradient>
+    </defs>
+    <polyline fill="none" stroke="url(#wfGrad)" stroke-width="2"
+      points="0,60 30,30 60,75 90,20 120,65 150,40 180,80 210,25 240,70 270,45 300,85 330,30 360,60 390,20 420,75 450,35 480,80 510,25 540,65 570,40 600,85 630,20 660,70 690,50 720,30 750,75 780,15 810,65 840,45 870,80 900,25 930,70 960,40 990,85 1020,20 1050,65 1080,35 1110,80 1140,30 1170,70 1200,45 1230,85 1260,20 1290,65 1320,40 1350,75 1380,35 1410,70 1440,60"/>
+  </svg>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ABOUT ADOBE -->
+<section id="about-adobe" class="section-pad about-adobe">
+  <div class="container">
+    <div class="section-header anim-in">
+      <div class="section-tag">🎨 نبذة تعريفية</div>
+      <h2 class="section-title">شركة Adobe وبرنامج Audition</h2>
+      <p class="section-desc">رائدة صناعة الإبداع الرقمي منذ أكثر من أربعة عقود</p>
+    </div>
+
+    <div class="adobe-grid anim-in">
+      <div class="adobe-visual">
+        <div class="adobe-logo-big">Au</div>
+        <div class="adobe-logo-sub">Adobe Audition</div>
+        <div class="adobe-year-badge">2026 — الإصدار الأحدث</div>
+        <br>
+        <svg width="200" height="60" viewBox="0 0 200 60" style="margin-top:1rem">
+          <defs>
+            <linearGradient id="wfG2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style="stop-color:#ff0000;stop-opacity:0.5"/>
+              <stop offset="100%" style="stop-color:#ff6b00;stop-opacity:0.9"/>
+            </linearGradient>
+          </defs>
+          <rect x="2" y="25" width="4" height="10" rx="2" fill="url(#wfG2)"/>
+          <rect x="9" y="15" width="4" height="30" rx="2" fill="url(#wfG2)"/>
+          <rect x="16" y="8" width="4" height="44" rx="2" fill="url(#wfG2)"/>
+          <rect x="23" y="18" width="4" height="24" rx="2" fill="url(#wfG2)"/>
+          <rect x="30" y="5" width="4" height="50" rx="2" fill="url(#wfG2)"/>
+          <rect x="37" y="20" width="4" height="20" rx="2" fill="url(#wfG2)"/>
+          <rect x="44" y="10" width="4" height="40" rx="2" fill="url(#wfG2)"/>
+          <rect x="51" y="22" width="4" height="16" rx="2" fill="url(#wfG2)"/>
+          <rect x="58" y="12" width="4" height="36" rx="2" fill="url(#wfG2)"/>
+          <rect x="65" y="6" width="4" height="48" rx="2" fill="url(#wfG2)"/>
+          <rect x="72" y="18" width="4" height="24" rx="2" fill="url(#wfG2)"/>
+          <rect x="79" y="28" width="4" height="4" rx="2" fill="url(#wfG2)"/>
+          <rect x="86" y="14" width="4" height="32" rx="2" fill="url(#wfG2)"/>
+          <rect x="93" y="8" width="4" height="44" rx="2" fill="url(#wfG2)"/>
+          <rect x="100" y="20" width="4" height="20" rx="2" fill="url(#wfG2)"/>
+          <rect x="107" y="4" width="4" height="52" rx="2" fill="url(#wfG2)"/>
+          <rect x="114" y="16" width="4" height="28" rx="2" fill="url(#wfG2)"/>
+          <rect x="121" y="22" width="4" height="16" rx="2" fill="url(#wfG2)"/>
+          <rect x="128" y="10" width="4" height="40" rx="2" fill="url(#wfG2)"/>
+          <rect x="135" y="18" width="4" height="24" rx="2" fill="url(#wfG2)"/>
+          <rect x="142" y="26" width="4" height="8" rx="2" fill="url(#wfG2)"/>
+          <rect x="149" y="14" width="4" height="32" rx="2" fill="url(#wfG2)"/>
+          <rect x="156" y="20" width="4" height="20" rx="2" fill="url(#wfG2)"/>
+          <rect x="163" y="12" width="4" height="36" rx="2" fill="url(#wfG2)"/>
+          <rect x="170" y="22" width="4" height="16" rx="2" fill="url(#wfG2)"/>
+          <rect x="177" y="28" width="4" height="4" rx="2" fill="url(#wfG2)"/>
+          <rect x="184" y="18" width="4" height="24" rx="2" fill="url(#wfG2)"/>
+          <rect x="191" y="25" width="4" height="10" rx="2" fill="url(#wfG2)"/>
+        </svg>
+      </div>
+
+      <div class="adobe-info">
+        <h3>Adobe Inc. — رائدة الإبداع الرقمي</h3>
+        <p>
+          تأسست شركة <strong style="color:var(--accent-blue)">Adobe Systems</strong> عام 1982 على يد <em>جون وارنوك</em> و<em>تشارلز جيسكي</em> في مدينة ماونتن فيو بولاية كاليفورنيا. انطلقت من فكرة بسيطة: إنشاء لغة PostScript لوصف الصفحات المطبوعة، لتتحول اليوم إلى إمبراطورية برمجية تضم أكثر من <strong>25 منتجاً إبداعياً</strong> يستخدمها الملايين حول العالم.
+        </p>
+        <p>
+          <strong style="color:var(--adobe-orange)">Adobe Audition</strong> — المعروف سابقاً بـ <em>Cool Edit Pro</em> — هو برنامج تحرير الصوت الاحترافي من Adobe. يوفر بيئة متكاملة لتسجيل الصوت وتحريره ومعالجته وإنتاج المكساجات المتعددة المسارات (Multitrack)، ويُعدّ المعيار الصناعي في إنتاج الراديو والبودكاست والأفلام والتقارير التلفزيونية.
+        </p>
+        <p>
+          يشتهر الإصدار <strong style="color:var(--accent-cyan)">2026</strong> بدمج تقنيات الذكاء الاصطناعي بعمق أكبر، مثل: إزالة الضوضاء التلقائية، وفصل الصوت عن الموسيقى، وتحويل النص إلى صوت، مما يجعله الأداة الأمثل لجيل جديد من منتجي المحتوى الصوتي.
+        </p>
+
+        <div class="adobe-features">
+          <div class="adobe-feat"><span class="icon">🎙</span> تسجيل متعدد المسارات</div>
+          <div class="adobe-feat"><span class="icon">🔇</span> إزالة الضوضاء بالذكاء الاصطناعي</div>
+          <div class="adobe-feat"><span class="icon">🎛</span> مئات الفلاتر والتأثيرات</div>
+          <div class="adobe-feat"><span class="icon">🤖</span> فصل الصوت عن الموسيقى</div>
+          <div class="adobe-feat"><span class="icon">📤</span> تصدير بصيغ متعددة</div>
+          <div class="adobe-feat"><span class="icon">🔗</span> تكامل مع Premiere Pro</div>
+        </div>
+
+        <div style="margin-top:1.5rem">
+          <button onclick="openModal()" style="display:inline-flex;align-items:center;gap:0.5rem;background:linear-gradient(135deg,rgba(0,168,255,0.15),rgba(124,58,237,0.15));border:1px solid rgba(0,168,255,0.4);color:var(--accent-blue);font-family:var(--font-main);font-size:0.9rem;font-weight:700;padding:0.7rem 1.5rem;border-radius:10px;cursor:pointer;transition:all 0.3s">
+            📋 عرض خطة المساق الكاملة
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- TERMINOLOGY -->
+<section id="terminology" class="section-pad">
+  <div class="container">
+    <div class="section-header anim-in">
+      <div class="section-tag">📚 المرجع الأكاديمي</div>
+      <h2 class="section-title">مصطلحات الصوت الرقمي</h2>
+      <p class="section-desc">المفاهيم الأساسية مع الإعدادات المُوصى بها في Adobe Audition</p>
+    </div>
+
+    <div class="terms-filter anim-in">
+      <button class="filter-btn active" onclick="filterTerms('all', this)">الكل</button>
+      <button class="filter-btn" onclick="filterTerms('basics', this)">أساسيات الصوت</button>
+      <button class="filter-btn" onclick="filterTerms('recording', this)">التسجيل</button>
+      <button class="filter-btn" onclick="filterTerms('editing', this)">التحرير</button>
+      <button class="filter-btn" onclick="filterTerms('formats', this)">الصيغ والتحويل</button>
+      <button class="filter-btn" onclick="filterTerms('ai', this)">ذكاء اصطناعي</button>
+    </div>
+
+    <div class="terms-grid">
+
+      <!-- SAMPLE RATE -->
+      <div class="term-card anim-in" data-category="basics">
+        <div class="term-badge">أساسيات الصوت</div>
+        <div class="term-en">Sample Rate</div>
+        <div class="term-ar">معدل أخذ العينات (Hz)</div>
+        <div class="term-desc">
+          هو عدد المرات في الثانية الواحدة التي يقيس فيها الحاسوب مستوى الصوت التماثلي ويحوله إلى بيانات رقمية. كلما ارتفع هذا المعدل، زادت دقة تمثيل الصوت الرقمي للصوت الحقيقي.
+        </div>
+        <div class="comparison-visual">
+          <div class="comp-row">
+            <div class="comp-label">8,000 Hz</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:15%"></div></div>
+            <div class="comp-val">هاتف</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">44,100 Hz</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:70%;background:var(--accent-green)"></div></div>
+            <div class="comp-val">CD / MP3</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">48,000 Hz</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:80%;background:var(--accent-cyan)"></div></div>
+            <div class="comp-val">فيديو/TV ✓</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">96,000 Hz</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:100%"></div></div>
+            <div class="comp-val">استوديو</div>
+          </div>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">الإعداد الموصى به</div>
+          <div class="term-preferred-value">48,000 Hz للمحتوى التلفزيوني والفيديو</div>
+          <div class="term-preferred-note">44,100 Hz لمحتوى الموسيقى والبودكاست فقط</div>
+        </div>
+      </div>
+
+      <!-- BIT DEPTH -->
+      <div class="term-card anim-in" data-category="basics">
+        <div class="term-badge">أساسيات الصوت</div>
+        <div class="term-en">Bit Depth</div>
+        <div class="term-ar">عمق البت / دقة الصوت</div>
+        <div class="term-desc">
+          يحدد عدد القيم الرقمية المتاحة لتمثيل مستوى الصوت في كل عينة. كلما زاد عمق البت، زاد النطاق الديناميكي للصوت (الفرق بين أعلى صوت وأهدأه) وقلت الضوضاء الرقمية.
+        </div>
+        <div class="comparison-visual">
+          <div class="comp-row">
+            <div class="comp-label">8-bit</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:20%"></div></div>
+            <div class="comp-val">256 قيمة</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">16-bit</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:55%;background:var(--accent-green)"></div></div>
+            <div class="comp-val">65,536 قيمة</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">24-bit</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:85%;background:var(--accent-cyan)"></div></div>
+            <div class="comp-val">16.7M قيمة ✓</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">32-bit Float</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:100%"></div></div>
+            <div class="comp-val">لامحدود</div>
+          </div>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">الإعداد الموصى به</div>
+          <div class="term-preferred-value">32-bit Float أثناء التحرير</div>
+          <div class="term-preferred-note">24-bit للتصدير النهائي للإنتاج الاحترافي</div>
+        </div>
+      </div>
+
+      <!-- MONO VS STEREO -->
+      <div class="term-card anim-in" data-category="basics">
+        <div class="term-badge">أساسيات الصوت</div>
+        <div class="term-en">Mono vs Stereo</div>
+        <div class="term-ar">أحادي القناة / ثنائي القناة</div>
+        <div class="term-desc">
+          <strong style="color:var(--accent-blue)">Mono</strong> يعني قناة صوت واحدة تُوزَّع على كلا الأذنين بالتساوي. 
+          <strong style="color:var(--accent-purple)">Stereo</strong> يعني قناتين (يسار ويمين) تعطيان إحساساً بالعمق المكاني والاتجاه. للتعليق الصوتي والمقابلات، يُفضل Mono أو Stereo بعد معالجة.
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-top:0.75rem">
+          <div style="flex:1;background:rgba(0,168,255,0.1);border:1px solid rgba(0,168,255,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+            <div style="font-size:1.5rem">🎤</div>
+            <div style="font-size:0.78rem;color:var(--accent-blue);font-weight:700">Mono</div>
+            <div style="font-size:0.72rem;color:var(--text-secondary)">تعليق · مقابلات · بودكاست</div>
+          </div>
+          <div style="flex:1;background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:0.75rem;text-align:center">
+            <div style="font-size:1.5rem">🎵</div>
+            <div style="font-size:0.78rem;color:var(--accent-purple);font-weight:700">Stereo</div>
+            <div style="font-size:0.72rem;color:var(--text-secondary)">موسيقى · مؤثرات · أفلام</div>
+          </div>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">الإعداد الموصى به</div>
+          <div class="term-preferred-value">Mono للتسجيل الصوتي الأولي</div>
+          <div class="term-preferred-note">تحويله لـ Stereo عند دمجه مع موسيقى في Multitrack</div>
+        </div>
+      </div>
+
+      <!-- NOISE FLOOR -->
+      <div class="term-card anim-in" data-category="recording">
+        <div class="term-badge">التسجيل</div>
+        <div class="term-en">Noise Floor</div>
+        <div class="term-ar">قاع الضوضاء</div>
+        <div class="term-desc">
+          أدنى مستوى للضوضاء الموجودة في تسجيل أو نظام تسجيل عند غياب أي صوت مقصود. يُقاس بوحدة dBFS، ويجب أن يكون منخفضاً قدر الإمكان (أقل من -60 dB) للحصول على تسجيل نظيف.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">الهدف الاحترافي</div>
+          <div class="term-preferred-value">أقل من -60 dBFS</div>
+          <div class="term-preferred-note">استخدم Noise Reduction في Audition لتنقية التسجيلات</div>
+        </div>
+      </div>
+
+      <!-- DYNAMIC RANGE -->
+      <div class="term-card anim-in" data-category="recording">
+        <div class="term-badge">التسجيل</div>
+        <div class="term-en">Dynamic Range</div>
+        <div class="term-ar">النطاق الديناميكي</div>
+        <div class="term-desc">
+          الفرق بين أهدأ وأعلى مستوى صوتي في التسجيل. نطاق واسع يعني صوتاً حياً طبيعياً. يُستخدم ضغط الديناميكية (Compressor) للتحكم في هذا النطاق للإذاعة والتلفزيون.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">معيار البث التلفزيوني</div>
+          <div class="term-preferred-value">-23 LUFS للتلفزيون الأوروبي (EBU R128)</div>
+          <div class="term-preferred-note">-16 LUFS للبودكاست · -14 LUFS لـ YouTube</div>
+        </div>
+      </div>
+
+      <!-- CLIPPING -->
+      <div class="term-card anim-in" data-category="recording">
+        <div class="term-badge">التسجيل</div>
+        <div class="term-en">Clipping</div>
+        <div class="term-ar">القطع / التشبع الرقمي</div>
+        <div class="term-desc">
+          يحدث عندما يتجاوز مستوى الصوت الحد الأقصى للنظام الرقمي (0 dBFS)، مما يسبب تشويهاً مسموعاً لا يمكن إصلاحه. احرص دائماً على أن يبقى ذروة الصوت بين -6 و-3 dBFS.
+        </div>
+        <div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:0.75rem;margin-top:0.75rem">
+          <div style="font-size:0.72rem;color:#ef4444;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.3rem">⚠ تجنب</div>
+          <div style="font-size:0.82rem;color:var(--text-primary)">تجاوز 0 dBFS — التشويه الناتج غير قابل للإصلاح</div>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">هدف مستوى الذروة</div>
+          <div class="term-preferred-value">-6 dBFS حداً أقصى أثناء التسجيل</div>
+          <div class="term-preferred-note">يترك هامش أمان (Headroom) للمعالجة اللاحقة</div>
+        </div>
+      </div>
+
+      <!-- MICROPHONE TYPES -->
+      <div class="term-card anim-in" data-category="recording">
+        <div class="term-badge">التسجيل</div>
+        <div class="term-en">Microphone Types</div>
+        <div class="term-ar">أنواع الميكروفونات</div>
+        <div class="term-desc">
+          تنقسم الميكروفونات حسب آلية عملها إلى: <strong style="color:var(--accent-blue)">Dynamic</strong> (ديناميكي - متين، لا يحتاج طاقة، مناسب للحفلات والمقابلات الميدانية) و<strong style="color:var(--accent-cyan)">Condenser</strong> (مكثف - حساس جداً، يحتاج Phantom Power 48V، مناسب للاستوديو). وحسب نمط الاستقبال: Cardioid · Omnidirectional · Bidirectional.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">موصى به للتسجيل الصوتي الاحترافي</div>
+          <div class="term-preferred-value">Condenser + Cardioid Pattern</div>
+          <div class="term-preferred-note">مثال: Rode NT1 / Audio-Technica AT2020</div>
+        </div>
+      </div>
+
+      <!-- FADE IN/OUT -->
+      <div class="term-card anim-in" data-category="editing">
+        <div class="term-badge">التحرير</div>
+        <div class="term-en">Fade In / Fade Out</div>
+        <div class="term-ar">التلاشي الدخولي / الخروجي</div>
+        <div class="term-desc">
+          <strong style="color:var(--accent-purple)">Fade In</strong> هو التدرج من الصمت إلى الصوت الكامل في بداية المقطع. <strong style="color:var(--accent-purple)">Fade Out</strong> هو عكسه — التدرج من الصوت الكامل إلى الصمت. كلاهما يُزيل النقرات المفاجئة ويعطي انتقالاً سلساً وطبيعياً.
+        </div>
+        <div style="margin:0.75rem 0">
+          <svg width="100%" height="50" viewBox="0 0 300 50">
+            <defs>
+              <linearGradient id="fadeIn" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:0"/>
+                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1"/>
+              </linearGradient>
+              <linearGradient id="fadeOut" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#7c3aed;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:0"/>
+              </linearGradient>
+            </defs>
+            <rect x="2" y="5" width="140" height="40" rx="4" fill="url(#fadeIn)" opacity="0.6"/>
+            <rect x="158" y="5" width="140" height="40" rx="4" fill="url(#fadeOut)" opacity="0.6"/>
+            <text x="72" y="30" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="monospace">Fade In →</text>
+            <text x="228" y="30" text-anchor="middle" fill="#a78bfa" font-size="10" font-family="monospace">← Fade Out</text>
+          </svg>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">مدة موصى بها</div>
+          <div class="term-preferred-value">0.5 – 2 ثانية للتعليق الصوتي</div>
+          <div class="term-preferred-note">3 – 5 ثوانٍ للموسيقى الخلفية</div>
+        </div>
+      </div>
+
+      <!-- NOISE REDUCTION -->
+      <div class="term-card anim-in" data-category="editing">
+        <div class="term-badge">التحرير</div>
+        <div class="term-en">Noise Reduction</div>
+        <div class="term-ar">تقليل الضوضاء</div>
+        <div class="term-desc">
+          فلتر في Adobe Audition يقوم بتحليل بصمة الضوضاء الخلفية (Noise Print) ثم إزالتها من كامل التسجيل. من أقوى الأدوات لتنظيف التسجيلات المنزلية أو التي تحتوي على ضجيج المكيف والتيار الكهربائي.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">خطوات الاستخدام</div>
+          <div class="term-preferred-value">١. حدد ثانية صمت → ٢. Capture Noise Print → ٣. Process</div>
+          <div class="term-preferred-note">إعداد Reduction: 70-85% | تجنب الرفع الزائد (يُحدث أثراً معدنياً)</div>
+        </div>
+      </div>
+
+      <!-- COMPRESSOR -->
+      <div class="term-card anim-in" data-category="editing">
+        <div class="term-badge">التحرير</div>
+        <div class="term-en">Compressor</div>
+        <div class="term-ar">الضاغط الديناميكي</div>
+        <div class="term-desc">
+          يقلص الفرق بين أعلى وأقل مستوى في الصوت، مما يجعله أكثر اتساقاً وأقل تفاوتاً. ضروري للتعليق الصوتي الاحترافي والبودكاست حتى يبدو الصوت مصقولاً وثابتاً في كل الظروف الاستماعية.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">إعدادات مقترحة للتعليق</div>
+          <div class="term-preferred-value">Ratio: 3:1 · Threshold: -20 dB</div>
+          <div class="term-preferred-note">Attack: 10ms · Release: 100ms · Makeup Gain حسب الحاجة</div>
+        </div>
+      </div>
+
+      <!-- EQUALIZER -->
+      <div class="term-card anim-in" data-category="editing">
+        <div class="term-badge">التحرير</div>
+        <div class="term-en">Equalizer (EQ)</div>
+        <div class="term-ar">الإيكوالايزر / معادل الصوت</div>
+        <div class="term-desc">
+          أداة لرفع أو خفض نطاقات ترددية محددة من الصوت. يُستخدم لتحسين وضوح الصوت البشري، إزالة الترددات المزعجة (Hum 50/60 Hz)، وإضافة حضور للصوت (Presence around 5kHz).
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">ضبط نموذجي للصوت البشري</div>
+          <div class="term-preferred-value">High-Pass عند 80 Hz + Boost عند 4-6 kHz</div>
+          <div class="term-preferred-note">استخدم Parametric EQ في Audition للتحكم الكامل</div>
+        </div>
+      </div>
+
+      <!-- REVERB -->
+      <div class="term-card anim-in" data-category="editing">
+        <div class="term-badge">التحرير</div>
+        <div class="term-en">Reverb</div>
+        <div class="term-ar">الصدى المحيطي / الرنين</div>
+        <div class="term-desc">
+          محاكاة الصوت في بيئة مكانية معينة (غرفة، قاعة، كنيسة...). يضيف عمقاً وحيوية للصوت. استخدامه بإفراط يجعل الصوت ضبابياً وغير مفهوم، بينما الاستخدام المدروس يعطي طابعاً سينمائياً.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">موصى به للتعليق الصوتي</div>
+          <div class="term-preferred-value">Room Size: Small · Decay: 0.8-1.2s · Mix: 5-15%</div>
+          <div class="term-preferred-note">تجنب Room Size: Large للصوت الإعلامي</div>
+        </div>
+      </div>
+
+      <!-- AUDIO FORMATS -->
+      <div class="term-card anim-in" data-category="formats">
+        <div class="term-badge">الصيغ والتحويل</div>
+        <div class="term-en">Audio Formats</div>
+        <div class="term-ar">صيغ الملفات الصوتية</div>
+        <div class="term-desc">
+          تنقسم إلى: <strong style="color:var(--accent-gold)">Lossless</strong> (بدون فقدان: WAV, AIFF, FLAC) تحافظ على كل بيانات الصوت الأصلية، و<strong style="color:var(--accent-gold)">Lossy</strong> (مع ضغط وفقدان: MP3, AAC, OGG) تقلص حجم الملف بحذف بيانات غير محسوسة.
+        </div>
+        <div class="comparison-visual">
+          <div class="comp-row">
+            <div class="comp-label" style="color:var(--accent-gold)">WAV/AIFF</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:100%;background:var(--accent-gold)"></div></div>
+            <div class="comp-val" style="color:var(--accent-gold)">Lossless</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">FLAC</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:70%;background:var(--accent-green)"></div></div>
+            <div class="comp-val">Lossless ✓</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">AAC 256k</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:45%"></div></div>
+            <div class="comp-val">Lossy</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">MP3 128k</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:20%"></div></div>
+            <div class="comp-val">Lossy</div>
+          </div>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">التدفق الموصى به</div>
+          <div class="term-preferred-value">تسجيل WAV (24-bit) ← تحرير ← تصدير AAC/MP3</div>
+          <div class="term-preferred-note">WAV للإرسال إلى محطات البث · MP3 320kbps للإنترنت</div>
+        </div>
+      </div>
+
+      <!-- BITRATE -->
+      <div class="term-card anim-in" data-category="formats">
+        <div class="term-badge">الصيغ والتحويل</div>
+        <div class="term-en">Bitrate</div>
+        <div class="term-ar">معدل البيانات (kbps)</div>
+        <div class="term-desc">
+          كمية البيانات المعالجة في الثانية الواحدة لملفات الصوت المضغوطة. يُعبَّر عنه بـ kbps (كيلوبت في الثانية). كلما ارتفع، زادت جودة الصوت وزاد حجم الملف.
+        </div>
+        <div class="comparison-visual">
+          <div class="comp-row">
+            <div class="comp-label">128 kbps</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:32%"></div></div>
+            <div class="comp-val">جيد — راديو</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">192 kbps</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:50%;background:var(--accent-green)"></div></div>
+            <div class="comp-val">جيد جداً</div>
+          </div>
+          <div class="comp-row">
+            <div class="comp-label">320 kbps</div>
+            <div class="comp-bar-wrap"><div class="comp-bar" style="width:82%;background:var(--accent-cyan)"></div></div>
+            <div class="comp-val">احترافي ✓</div>
+          </div>
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">الإعداد الموصى به</div>
+          <div class="term-preferred-value">320 kbps MP3 أو 256 kbps AAC</div>
+          <div class="term-preferred-note">لمحتوى الإنترنت والبودكاست</div>
+        </div>
+      </div>
+
+      <!-- AI TOOLS -->
+      <div class="term-card anim-in" data-category="ai">
+        <div class="term-badge">ذكاء اصطناعي</div>
+        <div class="term-en">AI Noise Removal</div>
+        <div class="term-ar">إزالة الضوضاء بالذكاء الاصطناعي</div>
+        <div class="term-desc">
+          أداة مدمجة في Adobe Audition 2026 تستخدم نماذج التعلم العميق للتمييز بين الصوت المرغوب والضوضاء بدقة تفوق الفلاتر التقليدية، مما يحافظ على طبيعية الصوت مع حذف الضجيج تلقائياً.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">أين تجدها</div>
+          <div class="term-preferred-value">Effects → Noise Reduction → DeNoise (AI)</div>
+          <div class="term-preferred-note">أسرع وأدق من Noise Reduction التقليدي</div>
+        </div>
+      </div>
+
+      <!-- STEM SEPARATION -->
+      <div class="term-card anim-in" data-category="ai">
+        <div class="term-badge">ذكاء اصطناعي</div>
+        <div class="term-en">Stem Separation</div>
+        <div class="term-ar">فصل مسارات الصوت</div>
+        <div class="term-desc">
+          تقنية تعتمد على الذكاء الاصطناعي لفصل مكونات الصوت من ملف مدمج: الصوت البشري، الموسيقى، الإيقاع، المؤثرات. تُستخدم لاستخلاص التعليق الصوتي من مقاطع مدمجة أو إعادة التحرير.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">أين تجدها في Audition</div>
+          <div class="term-preferred-value">Multitrack → Extract Channel to New Track (AI)</div>
+          <div class="term-preferred-note">متوفر أيضاً عبر Adobe Podcast (enhance.adobe.com)</div>
+        </div>
+      </div>
+
+      <!-- TEXT TO SPEECH -->
+      <div class="term-card anim-in" data-category="ai">
+        <div class="term-badge">ذكاء اصطناعي</div>
+        <div class="term-en">Text to Speech (TTS)</div>
+        <div class="term-ar">تحويل النص إلى صوت</div>
+        <div class="term-desc">
+          تقنية تحول النصوص المكتوبة إلى صوت بشري مُركَّب باستخدام نماذج الذكاء الاصطناعي. أصبحت دقتها عالية جداً وتدعم اللغة العربية في أحدث الإصدارات، وتُستخدم لإنتاج تعليقات صوتية سريعة.
+        </div>
+        <div class="term-preferred">
+          <div class="term-preferred-label">أدوات موصى بها</div>
+          <div class="term-preferred-value">Adobe Firefly Speech · ElevenLabs · Murf AI</div>
+          <div class="term-preferred-note">للتجربة العربية: Microsoft Azure Neural TTS</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- WAVEFORM VS MULTITRACK -->
+<section id="waveform-vs-multitrack" class="section-pad comparison-section">
+  <div class="container">
+    <div class="section-header anim-in">
+      <div class="section-tag">⚡ مقارنة جوهرية</div>
+      <h2 class="section-title">Waveform Editor vs Multitrack Session</h2>
+      <p class="section-desc">واجهتان مختلفتان في الغرض والاستخدام — الفهم الصحيح لهما أساس الإتقان</p>
+    </div>
+
+    <div class="vs-container anim-in">
+      <!-- WAVEFORM -->
+      <div class="vs-panel" data-mode="waveform">
+        <div class="vs-panel-header">
+          <div class="vs-panel-icon">📊</div>
+          <div class="vs-panel-name">Waveform Editor</div>
+          <div class="vs-panel-name-ar">محرر الموجة الصوتية</div>
+        </div>
+        <div class="vs-panel-body">
+          <ul class="vs-use-list">
+            <li>التعديل المباشر على ملف صوتي واحد</li>
+            <li>حذف أجزاء محددة وقص الصمت والأخطاء</li>
+            <li>تطبيق Noise Reduction وإزالة الضجيج</li>
+            <li>تعديل مستوى الصوت وتطبيق EQ أو Compressor</li>
+            <li>تحويل الصيغ: Mono ← Stereo أو العكس</li>
+            <li>رفع/خفض Bit Depth وSample Rate للملف</li>
+            <li>تطبيق Fade In/Out بسيط</li>
+          </ul>
+
+          <div class="vs-tip">
+            <span class="vs-tip-label">🎯 استخدمه عندما</span>
+            تريد تنظيف تسجيل صوتي واحد قبل إضافته للمكساج
+          </div>
+
+          <!-- Waveform illustration -->
+          <div class="waveform-demo" style="margin-top:1rem">
+            <svg width="100%" height="70" viewBox="0 0 300 70">
+              <defs>
+                <linearGradient id="wfBlue" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#00a8ff"/>
+                  <stop offset="100%" style="stop-color:#0066cc"/>
+                </linearGradient>
+              </defs>
+              <!-- Waveform bars -->
+              <g transform="translate(0,35)">
+                <rect x="2" y="-5" width="3" height="10" rx="1" fill="url(#wfBlue)" opacity="0.8"/>
+                <rect x="7" y="-15" width="3" height="30" rx="1" fill="url(#wfBlue)"/>
+                <rect x="12" y="-25" width="3" height="50" rx="1" fill="url(#wfBlue)"/>
+                <rect x="17" y="-10" width="3" height="20" rx="1" fill="url(#wfBlue)" opacity="0.7"/>
+                <rect x="22" y="-28" width="3" height="56" rx="1" fill="url(#wfBlue)"/>
+                <rect x="27" y="-18" width="3" height="36" rx="1" fill="url(#wfBlue)" opacity="0.9"/>
+                <rect x="32" y="-8" width="3" height="16" rx="1" fill="url(#wfBlue)" opacity="0.6"/>
+                <rect x="37" y="-22" width="3" height="44" rx="1" fill="url(#wfBlue)"/>
+                <rect x="42" y="-12" width="3" height="24" rx="1" fill="url(#wfBlue)" opacity="0.8"/>
+                <rect x="47" y="-30" width="3" height="60" rx="1" fill="url(#wfBlue)"/>
+                <rect x="52" y="-20" width="3" height="40" rx="1" fill="url(#wfBlue)" opacity="0.9"/>
+                <rect x="57" y="-5" width="3" height="10" rx="1" fill="url(#wfBlue)" opacity="0.5"/>
+                <rect x="62" y="-25" width="3" height="50" rx="1" fill="url(#wfBlue)"/>
+                <rect x="67" y="-15" width="3" height="30" rx="1" fill="url(#wfBlue)" opacity="0.7"/>
+                <rect x="72" y="-28" width="3" height="56" rx="1" fill="url(#wfBlue)"/>
+                <rect x="77" y="-18" width="3" height="36" rx="1" fill="url(#wfBlue)" opacity="0.85"/>
+                <rect x="82" y="-10" width="3" height="20" rx="1" fill="url(#wfBlue)" opacity="0.6"/>
+                <rect x="87" y="-22" width="3" height="44" rx="1" fill="url(#wfBlue)"/>
+                <rect x="92" y="-8" width="3" height="16" rx="1" fill="url(#wfBlue)" opacity="0.7"/>
+                <rect x="97" y="-25" width="3" height="50" rx="1" fill="url(#wfBlue)"/>
+                <!-- Silence gap -->
+                <rect x="104" y="-2" width="3" height="4" rx="1" fill="rgba(255,255,255,0.2)"/>
+                <rect x="109" y="-1" width="3" height="2" rx="1" fill="rgba(255,255,255,0.1)"/>
+                <!-- After silence -->
+                <rect x="116" y="-20" width="3" height="40" rx="1" fill="url(#wfBlue)" opacity="0.9"/>
+                <rect x="121" y="-28" width="3" height="56" rx="1" fill="url(#wfBlue)"/>
+                <rect x="126" y="-12" width="3" height="24" rx="1" fill="url(#wfBlue)" opacity="0.7"/>
+                <rect x="131" y="-25" width="3" height="50" rx="1" fill="url(#wfBlue)"/>
+                <rect x="136" y="-18" width="3" height="36" rx="1" fill="url(#wfBlue)" opacity="0.85"/>
+                <rect x="141" y="-8" width="3" height="16" rx="1" fill="url(#wfBlue)" opacity="0.6"/>
+                <rect x="146" y="-22" width="3" height="44" rx="1" fill="url(#wfBlue)"/>
+                <rect x="151" y="-15" width="3" height="30" rx="1" fill="url(#wfBlue)" opacity="0.75"/>
+                <rect x="156" y="-30" width="3" height="60" rx="1" fill="url(#wfBlue)"/>
+                <rect x="161" y="-20" width="3" height="40" rx="1" fill="url(#wfBlue)" opacity="0.9"/>
+                <rect x="166" y="-10" width="3" height="20" rx="1" fill="url(#wfBlue)" opacity="0.65"/>
+                <rect x="171" y="-25" width="3" height="50" rx="1" fill="url(#wfBlue)"/>
+                <rect x="176" y="-5" width="3" height="10" rx="1" fill="url(#wfBlue)" opacity="0.5"/>
+              </g>
+              <!-- Playhead -->
+              <line x1="100" y1="0" x2="100" y2="70" stroke="#ff6b00" stroke-width="1.5" stroke-dasharray="3,2"/>
+              <text x="102" y="12" fill="#ff6b00" font-size="7" font-family="monospace">✂ قص</text>
+            </svg>
+            <div style="font-size:0.7rem;color:var(--text-muted);text-align:center;margin-top:0.25rem">تعديل مباشر على ملف مفرد — يُغيّر الملف الأصلي</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VS -->
+      <div class="vs-badge">VS</div>
+
+      <!-- MULTITRACK -->
+      <div class="vs-panel" data-mode="multitrack">
+        <div class="vs-panel-header">
+          <div class="vs-panel-icon">🎚</div>
+          <div class="vs-panel-name">Multitrack Session</div>
+          <div class="vs-panel-name-ar">جلسة المسارات المتعددة</div>
+        </div>
+        <div class="vs-panel-body">
+          <ul class="vs-use-list">
+            <li>دمج عدة مسارات صوتية معاً (تعليق + موسيقى + مؤثرات)</li>
+            <li>التحكم في مستوى كل مسار بشكل مستقل</li>
+            <li>إضافة تأثيرات على مسار كامل عبر Effect Rack</li>
+            <li>التسجيل على مسارات متزامنة</li>
+            <li>استخدام Bus لتجميع مسارات وتطبيق تأثير موحد</li>
+            <li>إنتاج المكساج النهائي الكامل</li>
+            <li>تصدير Multitrack بصيغ متعددة دفعة واحدة</li>
+          </ul>
+
+          <div class="vs-tip">
+            <span class="vs-tip-label">🎯 استخدمه عندما</span>
+            تريد إنتاج مكساج صوتي متكامل يجمع عدة عناصر
+          </div>
+
+          <!-- Multitrack illustration -->
+          <div class="waveform-demo" style="margin-top:1rem">
+            <div class="wf-tracks">
+              <div class="wf-track">
+                <div class="wf-label" style="color:#00a8ff">تعليق</div>
+                <div class="wf-visual">
+                  <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+                    <rect x="0" y="0" width="200" height="36" fill="rgba(0,168,255,0.08)"/>
+                    <g transform="translate(0,18)">
+                      <rect x="5" y="-12" width="3" height="24" rx="1" fill="#00a8ff" opacity="0.7"/>
+                      <rect x="10" y="-8" width="3" height="16" rx="1" fill="#00a8ff" opacity="0.9"/>
+                      <rect x="15" y="-14" width="3" height="28" rx="1" fill="#00a8ff"/>
+                      <rect x="20" y="-6" width="3" height="12" rx="1" fill="#00a8ff" opacity="0.7"/>
+                      <rect x="25" y="-10" width="3" height="20" rx="1" fill="#00a8ff" opacity="0.85"/>
+                      <rect x="30" y="-2" width="3" height="4" rx="1" fill="#00a8ff" opacity="0.3"/>
+                      <rect x="35" y="-13" width="3" height="26" rx="1" fill="#00a8ff"/>
+                      <rect x="40" y="-9" width="3" height="18" rx="1" fill="#00a8ff" opacity="0.8"/>
+                      <rect x="45" y="-14" width="3" height="28" rx="1" fill="#00a8ff"/>
+                      <rect x="50" y="-5" width="3" height="10" rx="1" fill="#00a8ff" opacity="0.6"/>
+                      <rect x="55" y="-11" width="3" height="22" rx="1" fill="#00a8ff" opacity="0.9"/>
+                      <rect x="60" y="-7" width="3" height="14" rx="1" fill="#00a8ff" opacity="0.75"/>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="wf-track">
+                <div class="wf-label" style="color:#10b981">موسيقى</div>
+                <div class="wf-visual">
+                  <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+                    <rect x="0" y="0" width="200" height="36" fill="rgba(16,185,129,0.08)"/>
+                    <g transform="translate(0,18)">
+                      <rect x="2" y="-4" width="3" height="8" rx="1" fill="#10b981" opacity="0.6"/>
+                      <rect x="7" y="-6" width="3" height="12" rx="1" fill="#10b981" opacity="0.7"/>
+                      <rect x="12" y="-5" width="3" height="10" rx="1" fill="#10b981" opacity="0.65"/>
+                      <rect x="17" y="-7" width="3" height="14" rx="1" fill="#10b981" opacity="0.8"/>
+                      <rect x="22" y="-4" width="3" height="8" rx="1" fill="#10b981" opacity="0.6"/>
+                      <rect x="27" y="-6" width="3" height="12" rx="1" fill="#10b981" opacity="0.7"/>
+                      <rect x="32" y="-5" width="3" height="10" rx="1" fill="#10b981" opacity="0.65"/>
+                      <rect x="37" y="-7" width="3" height="14" rx="1" fill="#10b981" opacity="0.8"/>
+                      <rect x="42" y="-4" width="3" height="8" rx="1" fill="#10b981" opacity="0.6"/>
+                      <rect x="47" y="-6" width="3" height="12" rx="1" fill="#10b981" opacity="0.7"/>
+                      <rect x="52" y="-5" width="3" height="10" rx="1" fill="#10b981" opacity="0.65"/>
+                      <rect x="57" y="-7" width="3" height="14" rx="1" fill="#10b981" opacity="0.8"/>
+                      <rect x="62" y="-4" width="3" height="8" rx="1" fill="#10b981" opacity="0.6"/>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+              <div class="wf-track">
+                <div class="wf-label" style="color:#f59e0b">مؤثرات</div>
+                <div class="wf-visual">
+                  <svg width="100%" height="100%" viewBox="0 0 200 36" preserveAspectRatio="none">
+                    <rect x="0" y="0" width="200" height="36" fill="rgba(245,158,11,0.08)"/>
+                    <g transform="translate(0,18)">
+                      <rect x="25" y="-10" width="3" height="20" rx="1" fill="#f59e0b" opacity="0.9"/>
+                      <rect x="30" y="-6" width="3" height="12" rx="1" fill="#f59e0b" opacity="0.7"/>
+                      <rect x="65" y="-12" width="3" height="24" rx="1" fill="#f59e0b" opacity="0.9"/>
+                      <rect x="70" y="-7" width="3" height="14" rx="1" fill="#f59e0b" opacity="0.75"/>
+                    </g>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick comparison table -->
+    <div class="anim-in" style="margin-top:3rem;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+      <div style="padding:1.25rem 1.75rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.75rem">
+        <span style="font-size:1.2rem">📋</span>
+        <span style="font-weight:800;color:var(--text-primary)">مقارنة سريعة</span>
+      </div>
+      <div style="overflow-x:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:0.88rem">
+          <thead>
+            <tr style="background:rgba(255,255,255,0.03)">
+              <th style="padding:0.85rem 1.75rem;text-align:right;color:var(--text-secondary);font-weight:600;border-bottom:1px solid var(--border)">الخاصية</th>
+              <th style="padding:0.85rem 1.75rem;text-align:center;color:#00a8ff;font-weight:700;border-bottom:1px solid var(--border)">Waveform Editor</th>
+              <th style="padding:0.85rem 1.75rem;text-align:center;color:#7c3aed;font-weight:700;border-bottom:1px solid var(--border)">Multitrack Session</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:0.75rem 1.75rem;color:var(--text-secondary)">عدد المسارات</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#00a8ff">مسار واحد</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#7c3aed">لا محدود</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:0.75rem 1.75rem;color:var(--text-secondary)">التعديل الأصلي</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#00a8ff">يعدل الملف مباشرة</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#7c3aed">غير مدمر (Non-destructive)</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:0.75rem 1.75rem;color:var(--text-secondary)">الاستخدام الأمثل</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#00a8ff">تنظيف وتحرير ملف واحد</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#7c3aed">إنتاج المكساج الكامل</td>
+            </tr>
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+              <td style="padding:0.75rem 1.75rem;color:var(--text-secondary)">تطبيق التأثيرات</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#00a8ff">يُطبق داخل الملف</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#7c3aed">عبر Effect Rack / Bus</td>
+            </tr>
+            <tr>
+              <td style="padding:0.75rem 1.75rem;color:var(--text-secondary)">التصدير</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#00a8ff">ملف واحد</td>
+              <td style="padding:0.75rem 1.75rem;text-align:center;color:#7c3aed">Mixdown أو عدة صيغ</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ASSESSMENT -->
+<section id="assessment" class="section-pad">
+  <div class="container">
+    <div class="section-header anim-in">
+      <div class="section-tag">📊 نظام التقييم</div>
+      <h2 class="section-title">توزيع الدرجات</h2>
+      <p class="section-desc">توزيع نسب التقييم لمساق MMED 1205</p>
+    </div>
+    <div class="assessment-grid anim-in">
+      <div class="assess-item">
+        <div class="assess-pct">20%</div>
+        <div class="assess-name">تكليفات وأنشطة</div>
+      </div>
+      <div class="assess-item">
+        <div class="assess-pct">25%</div>
+        <div class="assess-name">الامتحان النصفي</div>
+      </div>
+      <div class="assess-item">
+        <div class="assess-pct">5%</div>
+        <div class="assess-name">حضور ومشاركة</div>
+      </div>
+      <div class="assess-item">
+        <div class="assess-pct">20%</div>
+        <div class="assess-name">المشروع النهائي</div>
+      </div>
+      <div class="assess-item">
+        <div class="assess-pct">30%</div>
+        <div class="assess-name">الامتحان النهائي</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- RESOURCES -->
+<section id="resources" class="section-pad" style="background:var(--bg-secondary)">
+  <div class="container">
+    <div class="section-header anim-in">
+      <div class="section-tag">🔗 موارد المساق</div>
+      <h2 class="section-title">روابط ومواد مساعدة</h2>
+      <p class="section-desc">كل ما تحتاجه لإتقان المساق في مكان واحد</p>
+    </div>
+
+    <div class="resources-grid anim-in">
+      <a href="https://drive.google.com/drive/folders/1pGDa_92Ki8qBV6AUNJrogkzQgG1n1jjR?usp=sharing" target="_blank" class="resource-card" data-type="download">
+        <div class="resource-icon" style="--res-color:#ff6b00">⬇</div>
+        <div class="resource-info">
+          <h4>Adobe Audition 2026</h4>
+          <p>تنزيل نسخة البرنامج المطلوبة للمساق</p>
+        </div>
+      </a>
+
+      <a href="https://drive.google.com/drive/folders/1ULbUamS5_ekBcEHmRZmeHZCCcSCA1Y6z?usp=classroom_web&authuser=7" target="_blank" class="resource-card" data-type="music">
+        <div class="resource-icon" style="--res-color:var(--accent-green)">🎵</div>
+        <div class="resource-info">
+          <h4>مكتبة الأصوات والموسيقى</h4>
+          <p>مجلد يحتوي على موسيقى وأصوات مجانية للمشاريع</p>
+        </div>
+      </a>
+
+      <a href="https://www.adobe.com/products/audition.html" target="_blank" class="resource-card" data-type="docs">
+        <div class="resource-icon" style="--res-color:var(--accent-blue)">📖</div>
+        <div class="resource-info">
+          <h4>الموقع الرسمي لـ Adobe Audition</h4>
+          <p>التوثيق الكامل والشروحات الرسمية من Adobe</p>
+        </div>
+      </a>
+
+      <div class="resource-card" data-type="docs" style="cursor:default" onclick="openModal()">
+        <div class="resource-icon" style="--res-color:var(--accent-purple)">📋</div>
+        <div class="resource-info">
+          <h4>خطة المساق التفصيلية</h4>
+          <p>15 أسبوعاً من المواضيع والأهداف والتقييمات</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="ucas-wordmark footer-wm"><span class="ucas-ar">الكلية الجامعية للعلوم التطبيقية</span></div>
+    <p class="footer-text">
+      الكلية الجامعية للعلوم التطبيقية — قسم تكنولوجيا المعلومات<br>
+      مساق تحرير الصوت رقمياً | MMED 1205 | الفصل الدراسي 2026<br>
+      أ. أحمد سعدي عجور | <a href="mailto:asajjour@ucas.edu.ps" style="color:var(--accent-blue);text-decoration:none">asajjour@ucas.edu.ps</a>
+    </p>
+    <div class="footer-links">
+      <a href="#about-adobe">نبذة عن Adobe</a>
+      <a href="#terminology">المصطلحات</a>
+      <a href="#waveform-vs-multitrack">Waveform vs Multitrack</a>
+      <a href="#resources">الموارد</a>
+      <a href="#assessment">التقييم</a>
+    </div>
+  </div>
+</footer>
+
+<!-- COURSE PLAN MODAL -->
+<div class="modal-overlay" id="courseModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3>📋 خطة مساق تحرير الصوت رقمياً</h3>
+        <p>MMED 1205 — الكلية الجامعية للعلوم التطبيقية | 15 أسبوعاً</p>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="week-item">
+        <div class="week-num">01</div>
+        <div class="week-content">
+          <h4>التعريف بالمساق والمادة النظرية</h4>
+          <ul class="week-topics">
+            <li>تعريف بالمساق وعرض الخطة الدراسية</li>
+            <li>عرض المادة النظرية للمساق والمخرجات التعليمية</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">02</div>
+        <div class="week-content">
+          <h4>مفاهيم المونتاج الصوتي والمصطلحات</h4>
+          <ul class="week-topics">
+            <li>مفهوم المونتاج الصوتي والهدف منه ومصطلحاته</li>
+            <li>وظائف المونتير وبرامج الهندسة الصوتية</li>
+            <li>Sample Rate وBit Depth وFade In/Out</li>
+            <li>التمييز بين Mono وStereo والصوت المحيطي</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">03</div>
+        <div class="week-content">
+          <h4>الميكروفونات والتسجيل</h4>
+          <ul class="week-topics">
+            <li>أنواع الميكروفونات حسب آلية التسجيل والاستخدام</li>
+            <li>الأجهزة المستخدمة في تسجيل الصوت</li>
+            <li>مشكلات التسجيل وطرق تفاديها — نصائح للتسجيل المنزلي</li>
+            <li>مفهوم العزل وتشتيت وتكسير الصوت ومراحل المونتاج</li>
+            <li>تنزيل Adobe Audition والتعرف على واجهته</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">04</div>
+        <div class="week-content">
+          <h4>القوائم والأدوات وإعدادات الصوت</h4>
+          <ul class="week-topics">
+            <li>شرح القوائم والأدوات وقائمة File</li>
+            <li>طريقة التسجيل والمشكلات المحتملة</li>
+            <li>أهمية السماعات وضبط إخراج الصوت</li>
+            <li>تحويل Stereo إلى Mono وتعديل Sample Rate وBit Depth</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">05</div>
+        <div class="week-content">
+          <h4>Waveform Editor بالتفصيل</h4>
+          <ul class="week-topics">
+            <li>شرح واجهة Waveform بشكل مفصل</li>
+            <li>حذف الأخطاء من المقطع الصوتي</li>
+            <li>التحكم بمستوى الصوت ومستويات السمع المناسبة</li>
+            <li>حفظ الملف الصوتي بعد التعديل</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">06</div>
+        <div class="week-content">
+          <h4>Noise Reduction والـ Fades</h4>
+          <ul class="week-topics">
+            <li>شرح فلتر Noise Reduction وتنقية الصوت من الضوضاء</li>
+            <li>تطبيق Fade In / Fade Out على واجهة Waveform</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">07</div>
+        <div class="week-content">
+          <h4>Multitrack Session والتسجيل المتعدد</h4>
+          <ul class="week-topics">
+            <li>شرح واجهة Multitrack بالتفصيل</li>
+            <li>تنفيذ مكساج بين الصوت والموسيقى</li>
+            <li>شرح Effect Rack وPreset Effect Rack</li>
+            <li>التسجيل على واجهة Multitrack</li>
+            <li>الهندسة الصوتية والذكاء الاصطناعي في الصوت</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item" style="border-color:rgba(239,68,68,0.3)">
+        <div class="week-num" style="background:rgba(239,68,68,0.15);border-color:rgba(239,68,68,0.3);color:#ef4444">08</div>
+        <div class="week-content">
+          <h4 style="color:#ef4444">⚡ الامتحان النصفي</h4>
+          <ul class="week-topics">
+            <li>الامتحان النصفي يغطي الأسابيع 1-7</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">09</div>
+        <div class="week-content">
+          <h4>الفلاتر من قائمة Filter</h4>
+          <ul class="week-topics">
+            <li>شرح الفلاتر من قائمة Filter</li>
+            <li>خصائص كل فلتر واستخداماته</li>
+            <li>استكمال الشرح النظري للفلاتر</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">10</div>
+        <div class="week-content">
+          <h4>اختبار نظري ومشروع نصفي</h4>
+          <ul class="week-topics">
+            <li>اختبار نظري واستكمال الفلاتر</li>
+            <li>مشروع نصفي: تسجيل وتعديل مقطع صوتي باستخدام المهارات المكتسبة</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">11</div>
+        <div class="week-content">
+          <h4>التصدير والـ Bus والمؤثرات</h4>
+          <ul class="week-topics">
+            <li>تصدير الملفات من Multitrack بصيغ مختلفة</li>
+            <li>إضافة Effects عبر Bus وEffect Rack</li>
+            <li>مصادر المؤثرات والموسيقى المجانية</li>
+            <li>تطبيق مؤثرات على مقاطع قرآنية خام</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">12</div>
+        <div class="week-content">
+          <h4>الفلاتر الخارجية وتقنية 8D</h4>
+          <ul class="week-topics">
+            <li>إضافة فلاتر خارجية (Plugins) للبرنامج</li>
+            <li>تدريبات عملية شاملة: صوت + موسيقى + مؤثرات + انتقالات</li>
+            <li>تطبيق تقنية 8D Audio</li>
+            <li>عرض مشاريع الطلاب بعد الامتحان النصفي</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">13</div>
+        <div class="week-content">
+          <h4>الذكاء الاصطناعي في الصوت</h4>
+          <ul class="week-topics">
+            <li>الذكاء الاصطناعي في الصوت: الإيجابيات والسلبيات</li>
+            <li>استخدام أدوات Adobe في إزالة الضوضاء</li>
+            <li>تحويل النص إلى صوت (TTS)</li>
+            <li>فصل الصوت عن الموسيقى (Stem Separation)</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item">
+        <div class="week-num">14</div>
+        <div class="week-content">
+          <h4>مواقع العمل والذكاء الاصطناعي التطبيقي</h4>
+          <ul class="week-topics">
+            <li>أبرز مواقع العمل الحر في مجال الصوت</li>
+            <li>تطبيقات الذكاء الاصطناعي في تسجيل ومعالجة الصوت</li>
+            <li>تدريبات ومراجعة شاملة</li>
+          </ul>
+        </div>
+      </div>
+      <div class="week-item" style="border:none">
+        <div class="week-num" style="background:rgba(245,158,11,0.15);border-color:rgba(245,158,11,0.3);color:#f59e0b">15</div>
+        <div class="week-content">
+          <h4 style="color:#f59e0b">🏆 تسليم المشاريع والامتحان النهائي</h4>
+          <ul class="week-topics">
+            <li>تسليم وتقييم المشاريع النهائية</li>
+            <li>مراجعة شاملة للامتحان النهائي</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Theme Toggle
+const body = document.body;
+const themeBtn = document.getElementById('themeBtn');
+let isLight = false;
+
+themeBtn.addEventListener('click', () => {
+  isLight = !isLight;
+  body.classList.toggle('light-mode', isLight);
+});
+
+// Modal
+function openModal() {
+  document.getElementById('courseModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('courseModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('courseModal').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) closeModal();
+});
+
+// Terms filter
+function filterTerms(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.term-card').forEach(card => {
+    if (cat === 'all' || card.dataset.category === cat) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// Animate on scroll
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => {
+        entry.target.classList.add('visible');
+      }, (entry.target.dataset.delay || 0));
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+// Stagger children within grid parents
+document.querySelectorAll('.terms-grid .anim-in, .adobe-grid .anim-in').forEach((el, i) => {
+  el.dataset.delay = (i % 4) * 80;
+});
+
+document.querySelectorAll('.anim-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
